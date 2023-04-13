@@ -53,6 +53,15 @@ public class ServerThread extends Thread {
 
                 // TODO exercise 5c
                 // simulate the fact the communication routine between the server and the client takes 3 seconds
+                // by putting the current thread to sleep for 3 seconds
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException interruptedException) {
+                    Log.e(Constants.TAG, "An exception has occurred: " + interruptedException.getMessage());
+                    if (Constants.DEBUG) {
+                        interruptedException.printStackTrace();
+                    }
+                }
 
                 PrintWriter printWriter = Utilities.getWriter(socket);
                 printWriter.println(serverTextEditText.getText().toString());
@@ -61,12 +70,39 @@ public class ServerThread extends Thread {
 
                 // TODO exercise 5d
                 // move the communication routine between the server and the client on a separate thread (each)
-
+                // by creating a new CommunicationThread instance and passing the socket as parameter
+                // start the thread
+                CommunicationThread communicationThread = new CommunicationThread(socket);
+                communicationThread.start();
             }
         } catch (IOException ioException) {
             Log.e(Constants.TAG, "An exception has occurred: " + ioException.getMessage());
             if (Constants.DEBUG) {
                 ioException.printStackTrace();
+            }
+        }
+    }
+
+    private class CommunicationThread extends Thread{
+        private Socket socket;
+
+        public CommunicationThread(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Log.v(Constants.TAG, "Connection opened with "+socket.getInetAddress()+":"+socket.getLocalPort());
+                PrintWriter printWriter = Utilities.getWriter(socket);
+                printWriter.println(serverTextEditText.getText().toString());
+                socket.close();
+                Log.v(Constants.TAG, "Connection closed");
+            } catch (IOException ioException) {
+                Log.e(Constants.TAG, "An exception has occurred: "+ioException.getMessage());
+                if (Constants.DEBUG) {
+                    ioException.printStackTrace();
+                }
             }
         }
     }
